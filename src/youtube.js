@@ -1,4 +1,4 @@
-/* global videojs, YT */
+/* global videojs, YT, $ */
 /* jshint browser: true */
 
 (function() {
@@ -219,11 +219,23 @@
     }
     var self = this;
 
-    if(!this.videoId) {
+    if(!this.videoId && !params.list) {
       this.el_.src = 'about:blank';
       setTimeout(function() {
         self.triggerReady();
       }, 500);
+    } else if (params.list) {
+      if (!videojs.Youtube.apiKey) { throw 'videojs.Youtube.apiKey is required for playlists to work'; }
+      this.el_.src = 'about:blank';
+      var googleApi = 'https://www.googleapis.com/youtube/v3/';
+      $.ajax({
+        url: googleApi + 'playlistItems?part=contentDetails&playlistId=' +
+              params.list + '&maxResults=1&key=' + videojs.Youtube.apiKey,
+        dataType: 'json',
+        success: function(data) {
+          self.src('&v=' + data.items[0].contentDetails.videoId);
+        }
+      });
     } else {
       this.el_.src = (
         (this.forceSSL || isLocalProtocol) ?
